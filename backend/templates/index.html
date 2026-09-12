@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PCOS Health Assistant</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #fdeaf3 0%, #f3e8fd 100%);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        header {
+            background: #9c27b0;
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        header h1 { font-size: 1.3rem; font-weight: 600; }
+        header span { font-size: 0.85rem; opacity: 0.9; }
+        .chat-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .message {
+            max-width: 75%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            line-height: 1.5;
+            font-size: 0.95rem;
+            word-wrap: break-word;
+        }
+        .message.user {
+            align-self: flex-end;
+            background: #9c27b0;
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+        .message.bot {
+            align-self: flex-start;
+            background: white;
+            color: #333;
+            border-bottom-left-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .message.bot.disclaimer {
+            font-size: 0.8rem;
+            background: #fff3e0;
+            color: #e65100;
+        }
+        .message.bot.typing {
+            color: #999;
+            font-style: italic;
+        }
+        .message .sources {
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid #eee;
+            font-size: 0.75rem;
+            color: #999;
+        }
+        .message p { margin: 0 0 8px; }
+        .message p:last-child { margin-bottom: 0; }
+        .message h1, .message h2, .message h3, .message h4 { margin: 8px 0 6px; line-height: 1.3; }
+        .message h1 { font-size: 1.15rem; }
+        .message h2 { font-size: 1.05rem; }
+        .message h3 { font-size: 0.98rem; }
+        .message h4 { font-size: 0.92rem; }
+        .message ul, .message ol { margin: 4px 0 8px 18px; }
+        .message li { margin-bottom: 4px; }
+        .message code {
+            background: #f3e8fd;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.85em;
+        }
+        .message pre {
+            background: #f5f5f5;
+            border-radius: 8px;
+            padding: 10px 12px;
+            overflow-x: auto;
+            margin: 8px 0;
+        }
+        .message pre code { background: none; padding: 0; }
+        .message blockquote {
+            border-left: 3px solid #e1bee7;
+            margin: 8px 0;
+            padding: 2px 12px;
+            color: #555;
+        }
+        .message a { color: #7b1fa2; }
+        .message hr { border: none; border-top: 1px solid #e0e0e0; margin: 10px 0; }
+        .error-banner {
+            background: #ffebee;
+            color: #c62828;
+            padding: 10px 20px;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+        .input-container {
+            background: white;
+            border-top: 1px solid #e0e0e0;
+            padding: 15px 20px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .input-container input {
+            flex: 1;
+            padding: 12px 18px;
+            border: 2px solid #e0e0e0;
+            border-radius: 24px;
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .input-container input:focus { border-color: #9c27b0; }
+        .input-container button {
+            background: #9c27b0;
+            color: white;
+            border: none;
+            border-radius: 24px;
+            padding: 12px 24px;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .input-container button:hover { background: #7b1fa2; }
+        .input-container button:disabled { opacity: 0.6; cursor: not-allowed; }
+        #mlToggle {
+            background: #fff;
+            color: #9c27b0;
+            border: none;
+            border-radius: 20px;
+            padding: 8px 16px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        #mlToggle:hover { background: #f3e8fd; }
+        .ml-modal {
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(135deg, #fdeaf3 0%, #f3e8fd 100%);
+            overflow-y: auto;
+            padding: 20px;
+            z-index: 100;
+        }
+        .ml-card {
+            max-width: 860px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        .ml-card h2 { color: #7b1fa2; margin-bottom: 4px; }
+        .ml-card .ml-sub { color: #666; font-size: 0.85rem; margin-bottom: 16px; }
+        .ml-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 14px;
+        }
+        .ml-grid label {
+            display: flex;
+            flex-direction: column;
+            font-size: 0.8rem;
+            color: #555;
+            gap: 6px;
+        }
+        .ml-grid input, .ml-grid select {
+            padding: 8px 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .ml-grid select { background: white; }
+        .ml-grid input:focus, .ml-grid select:focus { border-color: #9c27b0; }
+        .ml-card .ml-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 18px;
+        }
+        .ml-card button {
+            border: none;
+            border-radius: 24px;
+            padding: 10px 22px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .ml-submit-btn { background: #9c27b0; color: white; }
+        .ml-submit-btn:hover { background: #7b1fa2; }
+        .ml-submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .ml-close-btn { background: #eee; color: #555; }
+        .ml-close-btn:hover { background: #e0e0e0; }
+        .ml-result {
+            margin-top: 18px;
+            border-top: 2px solid #f3e8fd;
+            padding-top: 16px;
+        }
+        .ml-result h3 { color: #7b1fa2; margin-bottom: 10px; }
+        .ml-risk-pill {
+            display: inline-block;
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: white;
+        }
+        .ml-risk-pill.low { background: #66bb6a; }
+        .ml-risk-pill.moderate { background: #ffa726; }
+        .ml-risk-pill.high { background: #ef5350; }
+        .ml-prob-bar {
+            height: 10px;
+            border-radius: 5px;
+            background: #eee;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+        .ml-prob-bar > div { height: 100%; background: #9c27b0; }
+        .ml-rec ul { margin: 10px 0 0 18px; }
+        .ml-rec li { margin-bottom: 6px; line-height: 1.4; }
+        .ml-err {
+            color: #c62828;
+            background: #ffebee;
+            border-radius: 8px;
+            padding: 10px 12px;
+            margin-top: 14px;
+            font-size: 0.85rem;
+        }
+        .hidden { display: none; }
+        @media (max-width: 600px) {
+            .message { max-width: 90%; }
+            header { padding: 12px 15px; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>🌸 PCOS Health Assistant</h1>
+        <span>AI-powered support · Not a substitute for medical advice</span>
+        <button id="mlToggle">PCOS Risk Assessment</button>
+    </header>
+
+    <div id="errorBanner" class="error-banner" style="display: none;"></div>
+
+    <div id="chatContainer" class="chat-container"></div>
+
+    <div class="input-container">
+        <input id="userInput" type="text" placeholder="Ask about PCOS symptoms, diet, treatment..." autocomplete="off">
+        <button id="sendButton">Send</button>
+    </div>
+
+    <div id="mlModal" class="ml-modal hidden">
+        <div class="ml-card">
+            <h2>🌸 PCOS Risk Assessment</h2>
+            <p class="ml-sub">Enter your latest health metrics for a screening estimate. This is not a medical diagnosis.</p>
+            <div id="mlForm" class="ml-grid"></div>
+            <div id="mlError" class="ml-err hidden"></div>
+            <div id="mlResult" class="ml-result hidden"></div>
+            <div class="ml-actions">
+                <button id="mlSubmit" class="ml-submit-btn">Get Prediction</button>
+                <button id="mlClose" class="ml-close-btn">Back to Chat</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const chatContainer = document.getElementById('chatContainer');
+        const userInput = document.getElementById('userInput');
+        const sendButton = document.getElementById('sendButton');
+        const errorBanner = document.getElementById('errorBanner');
+        let sessionId = null;
+
+        function addMessage(content, role) {
+            const div = document.createElement('div');
+            div.className = `message ${role}`;
+            div.innerHTML = renderMarkdown(content);
+            chatContainer.appendChild(div);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+            return div;
+        }
+
+        function escapeHtml(text) {
+            return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        function renderInline(text) {
+            return text
+                .replace(/`([^`]+)`/g, '<code>$1</code>')
+                .replace(/\*\*\*([^*]+)\*\*\*/g, '<em><strong>$1</strong></em>')
+                .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*([^*]+)\*/g, '<em>$1</em>')
+                .replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+        }
+
+        function renderMarkdown(text) {
+            const lines = escapeHtml(text).split('\n');
+            let html = '';
+            let i = 0;
+            let inList = false;
+            let listType = null;
+
+            const closeList = () => {
+                if (inList) { html += '</' + listType + '>'; inList = false; listType = null; }
+            };
+            const isBlockStart = (line) => {
+                const t = line.trim();
+                return /^```/.test(t) || /^#{1,6}\s/.test(t) || /^>\s?/.test(t) ||
+                    /^[-*+]\s+/.test(t) || /^\d+[.)]\s+/.test(t);
+            };
+
+            while (i < lines.length) {
+                const line = lines[i];
+                const trimmed = line.trim();
+
+                if (/^```/.test(trimmed)) {
+                    closeList();
+                    const code = [];
+                    i++;
+                    while (i < lines.length && !lines[i].trim().startsWith('```')) { code.push(lines[i]); i++; }
+                    i++;
+                    html += '<pre><code>' + code.join('\n') + '</code></pre>';
+                    continue;
+                }
+                if (/^#{1,6}\s/.test(trimmed)) {
+                    closeList();
+                    const level = trimmed.match(/^#+/)[0].length;
+                    html += '<h' + level + '>' + renderInline(trimmed.replace(/^#+\s/, '')) + '</h' + level + '>';
+                    i++;
+                    continue;
+                }
+                if (/^>\s?/.test(trimmed)) {
+                    closeList();
+                    html += '<blockquote>' + renderInline(trimmed.replace(/^>\s?/, '')) + '</blockquote>';
+                    i++;
+                    continue;
+                }
+                if (/^[-*+]\s+/.test(trimmed) || /^\d+[.)]\s+/.test(trimmed)) {
+                    const type = /^[-*+]\s+/.test(trimmed) ? 'ul' : 'ol';
+                    if (!inList) { inList = true; listType = type; html += '<' + type + '>'; }
+                    else if (listType !== type) { html += '</' + listType + '><' + type + '>'; listType = type; }
+                    html += '<li>' + renderInline(trimmed.replace(/^([-*+]|\d+[.)])\s+/, '')) + '</li>';
+                    i++;
+                    continue;
+                }
+                if (trimmed === '') {
+                    closeList();
+                    i++;
+                    continue;
+                }
+
+                closeList();
+                const para = [];
+                while (i < lines.length && lines[i].trim() !== '' && !isBlockStart(lines[i])) {
+                    para.push(lines[i].trim());
+                    i++;
+                }
+                html += '<p>' + renderInline(para.join(' ')) + '</p>';
+            }
+            closeList();
+            return html;
+        }
+
+        function addTypingIndicator() {
+            const div = document.createElement('div');
+            div.className = 'message bot typing';
+            div.textContent = 'Thinking...';
+            chatContainer.appendChild(div);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+            return div;
+        }
+
+        function showError(msg) {
+            errorBanner.textContent = msg;
+            errorBanner.style.display = 'block';
+            setTimeout(() => errorBanner.style.display = 'none', 5000);
+        }
+
+        async function sendMessage() {
+            const message = userInput.value.trim();
+            if (!message) return;
+
+            userInput.value = '';
+            sendButton.disabled = true;
+            addMessage(message, 'user');
+
+            const typing = addTypingIndicator();
+
+            try {
+                const response = await fetch('/api/chat/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        message: message,
+                        session_id: sessionId,
+                        use_rag: true
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Server error: ${response.status}`);
+                }
+
+                const data = await response.json();
+                sessionId = data.session_id;
+                typing.remove();
+
+                addMessage(data.response, 'bot');
+
+                if (data.sources && data.sources.length > 0) {
+                    const sources = [...new Set(data.sources)];
+                    addMessage('Sources:\n' + sources.join('\n'), 'bot').classList.add('disclaimer');
+                }
+
+            } catch (error) {
+                typing.remove();
+                addMessage('Sorry, I encountered an error. Please try again.', 'bot');
+                showError(error.message);
+            } finally {
+                sendButton.disabled = false;
+                userInput.focus();
+            }
+        }
+
+        sendButton.addEventListener('click', sendMessage);
+        userInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+
+        // ---- ML prediction ----
+        const mlToggle = document.getElementById('mlToggle');
+        const mlModal = document.getElementById('mlModal');
+        const mlForm = document.getElementById('mlForm');
+        const mlSubmit = document.getElementById('mlSubmit');
+        const mlClose = document.getElementById('mlClose');
+        const mlError = document.getElementById('mlError');
+        const mlResult = document.getElementById('mlResult');
+
+        const ML_FEATURES = [
+            { key: "Age (yrs)", label: "Age (yrs)", min: 10, max: 60, step: 1 },
+            { key: "Pulse rate(bpm)", label: "Pulse rate (bpm)", min: 40, max: 150, step: 1 },
+            { key: "Hb(g/dl)", label: "Hb (g/dl)", min: 5, max: 20, step: 0.1 },
+            { key: "Cycle(R/I)", label: "Cycle (Regular/Irregular)", min: 0, max: 5, step: 1 },
+            { key: "Cycle length(days)", label: "Cycle length (days)", min: 1, max: 120, step: 1 },
+            { key: "Marraige Status (Yrs)", label: "Marriage Status (yrs)", min: 0, max: 40, step: 1 },
+            { key: "I   beta-HCG(mIU/mL)", label: "I beta-HCG (mIU/mL)", min: 0, max: 1000, step: 1 },
+            { key: "II    beta-HCG(mIU/mL)", label: "II beta-HCG (mIU/mL)", min: 0, max: 1000, step: 1 },
+            { key: "FSH(mIU/mL)", label: "FSH (mIU/mL)", min: 0, max: 50, step: 0.1 },
+            { key: "Waist:Hip Ratio", label: "Waist:Hip Ratio", min: 0.5, max: 1.5, step: 0.01 },
+            { key: "TSH (mIU/L)", label: "TSH (mIU/L)", min: 0, max: 50, step: 0.1 },
+            { key: "PRL(ng/mL)", label: "PRL (ng/mL)", min: 0, max: 150, step: 0.1 },
+            { key: "Vit D3 (ng/mL)", label: "Vit D3 (ng/mL)", min: 0, max: 100, step: 0.1 },
+            { key: "PRG(ng/mL)", label: "PRG (ng/mL)", min: 0, max: 60, step: 0.1 },
+            { key: "RBS(mg/dl)", label: "RBS (mg/dl)", min: 30, max: 400, step: 1 },
+            { key: "Follicle No. (L)", label: "Follicle No. (L)", min: 0, max: 50, step: 1 },
+            { key: "Follicle No. (R)", label: "Follicle No. (R)", min: 0, max: 50, step: 1 },
+        ];
+        const ML_BINARY_FEATURES = [
+            { key: "Weight gain(Y/N)", label: "Weight gain" },
+            { key: "hair growth(Y/N)", label: "Hair growth" },
+            { key: "Skin darkening (Y/N)", label: "Skin darkening" },
+            { key: "Hair loss(Y/N)", label: "Hair loss" },
+            { key: "Reg.Exercise(Y/N)", label: "Regular exercise" },
+        ];
+        const ML_BLOOD_GROUPS = [
+            { value: 11, label: 'A+' },
+            { value: 12, label: 'A-' },
+            { value: 13, label: 'B+' },
+            { value: 14, label: 'B-' },
+            { value: 15, label: 'O+' },
+            { value: 16, label: 'O-' },
+            { value: 17, label: 'AB+' },
+            { value: 18, label: 'AB-' },
+        ];
+
+        function buildMlForm() {
+            const bgWrap = document.createElement('label');
+            bgWrap.textContent = 'Blood Group';
+            const bgSelect = document.createElement('select');
+            bgSelect.name = 'Blood Group';
+            bgSelect.required = true;
+            ML_BLOOD_GROUPS.forEach(g => {
+                const opt = document.createElement('option');
+                opt.value = g.value;
+                opt.textContent = g.label;
+                bgSelect.appendChild(opt);
+            });
+            bgWrap.appendChild(bgSelect);
+            mlForm.appendChild(bgWrap);
+
+            ML_FEATURES.forEach(f => {
+                const wrap = document.createElement('label');
+                wrap.textContent = f.label;
+                const input = document.createElement('input');
+                input.type = 'number';
+                input.name = f.key;
+                input.min = f.min;
+                input.max = f.max;
+                input.step = f.step;
+                input.required = true;
+                wrap.appendChild(input);
+                mlForm.appendChild(wrap);
+            });
+            ML_BINARY_FEATURES.forEach(f => {
+                const wrap = document.createElement('label');
+                wrap.textContent = f.label;
+                const select = document.createElement('select');
+                select.name = f.key;
+                const no = document.createElement('option');
+                no.value = '0';
+                no.textContent = 'No';
+                const yes = document.createElement('option');
+                yes.value = '1';
+                yes.textContent = 'Yes';
+                select.appendChild(no);
+                select.appendChild(yes);
+                wrap.appendChild(select);
+                mlForm.appendChild(wrap);
+            });
+        }
+
+        function renderResult(data) {
+            const riskClass = data.risk_level === 'high' ? 'high' : data.risk_level === 'moderate' ? 'moderate' : 'low';
+            const pct = (data.probability_pcos * 100).toFixed(1);
+            mlResult.innerHTML = '<h3>' + data.diagnosis + '</h3>' +
+                '<span class="ml-risk-pill ' + riskClass + '">' + data.risk_level.toUpperCase() + ' RISK</span>' +
+                '<div class="ml-prob-bar"><div style="width:' + pct + '%"></div></div>' +
+                '<div style="font-size:0.8rem;color:#666;margin-top:4px;">Probability of PCOS: ' + pct + '%</div>' +
+                '<div class="ml-rec"><strong>Recommendations:</strong><ul>' +
+                data.recommendations.map(r => '<li>' + r + '</li>').join('') +
+                '</ul></div>';
+            mlResult.classList.remove('hidden');
+        }
+
+        async function submitPrediction() {
+            const payload = {};
+            mlForm.querySelectorAll('input, select').forEach(el => {
+                payload[el.name] = parseFloat(el.value);
+            });
+            mlSubmit.disabled = true;
+            mlResult.classList.add('hidden');
+            mlError.classList.add('hidden');
+            try {
+                const response = await fetch('/api/ml/predict', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (!response.ok) {
+                    const errBody = await response.json().catch(() => ({}));
+                    throw new Error(errBody.detail || 'Server error: ' + response.status);
+                }
+                renderResult(await response.json());
+            } catch (error) {
+                mlError.textContent = error.message;
+                mlError.classList.remove('hidden');
+            } finally {
+                mlSubmit.disabled = false;
+            }
+        }
+
+        buildMlForm();
+        mlToggle.addEventListener('click', () => mlModal.classList.remove('hidden'));
+        mlClose.addEventListener('click', () => mlModal.classList.add('hidden'));
+        mlSubmit.addEventListener('click', submitPrediction);
+
+        addMessage('Hello! I am your PCOS health assistant. I can help you with questions about symptoms, diet, exercise, treatments, and more. Please remember I am an AI and not a substitute for professional medical advice.', 'bot');
+        addMessage('Try asking: "What is PCOS?" or "What foods should I eat with PCOS?"', 'bot').classList.add('disclaimer');
+        userInput.focus();
+    </script>
+</body>
+</html>
