@@ -1,0 +1,50 @@
+{
+  "created_at": "2026-09-22T05:50:11.961995+00:00",
+  "source": "dataset/test.csv",
+  "n_rows": 82,
+  "n_features": 23,
+  "class_distribution": {
+    "non_pcos": 55,
+    "pcos": 27
+  },
+  "model_loaded_from": "backend/ml/models/pcos_model.pkl",
+  "model_params": {
+    "ccp_alpha": 0.0,
+    "criterion": "deprecated",
+    "init": null,
+    "learning_rate": 0.1,
+    "loss": "log_loss",
+    "max_depth": 5,
+    "max_features": null,
+    "max_leaf_nodes": null,
+    "min_impurity_decrease": 0.0,
+    "min_samples_leaf": 1,
+    "min_samples_split": 2,
+    "min_weight_fraction_leaf": 0.0,
+    "n_estimators": 200,
+    "n_iter_no_change": null,
+    "random_state": 42,
+    "subsample": 1.0,
+    "tol": 0.0001,
+    "validation_fraction": 0.1,
+    "verbose": 0,
+    "warm_start": false
+  },
+  "metrics": {
+    "accuracy": 0.9024,
+    "precision_pcos": 0.88,
+    "recall_pcos": 0.8148,
+    "f1_pcos": 0.8462,
+    "roc_auc": 0.9037,
+    "confusion_matrix": [
+      [
+        52,
+        3
+      ],
+      [
+        5,
+        22
+      ]
+    ]
+  }
+}

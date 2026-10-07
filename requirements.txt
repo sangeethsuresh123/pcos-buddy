@@ -10,6 +10,7 @@ python-dotenv>=1.0
 pydantic-settings>=2.0
 python-multipart>=0.0.9
 scikit-learn>=1.5
+imbalanced-learn>=0.12
 pypdf>=4.0
 numpy>=1.26
 pandas>=2.1

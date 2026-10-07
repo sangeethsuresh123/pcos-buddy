@@ -564,7 +564,11 @@
                 });
                 if (!response.ok) {
                     const errBody = await response.json().catch(() => ({}));
-                    throw new Error(errBody.detail || 'Server error: ' + response.status);
+                    const detail = errBody.detail;
+                    const msg = Array.isArray(detail)
+                        ? detail.map(e => e.msg || JSON.stringify(e)).join('; ')
+                        : detail;
+                    throw new Error(msg || 'Server error: ' + response.status);
                 }
                 renderResult(await response.json());
             } catch (error) {

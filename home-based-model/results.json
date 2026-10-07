@@ -1,0 +1,115 @@
+{
+  "metadata": {
+    "created_at": "2026-09-22T05:45:58.616201+00:00",
+    "source": "home-based-dataset/pcos-gform-dataset.csv",
+    "n_rows": 465,
+    "n_features": 15,
+    "class_distribution_total": {
+      "non_pcos": 363,
+      "pcos": 102
+    },
+    "train_rows": 372,
+    "test_rows": 93,
+    "test_class_distribution": {
+      "non_pcos": 73,
+      "pcos": 20
+    },
+    "model_params": {
+      "n_estimators": 200,
+      "max_depth": 5,
+      "learning_rate": 0.1,
+      "random_state": 42
+    }
+  },
+  "runs": [
+    {
+      "created_at": "2026-09-22T05:45:58.616201+00:00",
+      "name": "baseline",
+      "resampling": "none",
+      "train_class_distribution": {
+        "non_pcos": 290,
+        "pcos": 82
+      },
+      "metrics": {
+        "accuracy": 0.7849,
+        "precision_pcos": 0.5,
+        "recall_pcos": 0.5,
+        "f1_pcos": 0.5,
+        "roc_auc": 0.6781,
+        "confusion_matrix": [
+          [
+            63,
+            10
+          ],
+          [
+            10,
+            10
+          ]
+        ]
+      }
+    },
+    {
+      "created_at": "2026-09-22T05:45:58.616201+00:00",
+      "name": "smote",
+      "resampling": "smote",
+      "smote_neighbors": 5,
+      "train_class_distribution": {
+        "non_pcos": 290,
+        "pcos": 290
+      },
+      "metrics": {
+        "accuracy": 0.8065,
+        "precision_pcos": 0.55,
+        "recall_pcos": 0.55,
+        "f1_pcos": 0.55,
+        "roc_auc": 0.6644,
+        "confusion_matrix": [
+          [
+            64,
+            9
+          ],
+          [
+            9,
+            11
+          ]
+        ]
+      }
+    }
+  ],
+  "feature_importances": {
+    "baseline": {
+      "periods_regular": 0.36,
+      "age": 0.2014,
+      "weight_kg": 0.1164,
+      "height_cm": 0.1,
+      "period_length_days": 0.055,
+      "skin_darkening": 0.0271,
+      "blood_group": 0.0248,
+      "hair_loss": 0.021,
+      "mood_swings": 0.019,
+      "hair_growth": 0.0174,
+      "period_freq_months": 0.0153,
+      "fast_food": 0.0147,
+      "exercise": 0.0144,
+      "acne": 0.0077,
+      "weight_gain": 0.0057
+    },
+    "smote": {
+      "periods_regular": 0.5791,
+      "age": 0.0956,
+      "height_cm": 0.0609,
+      "period_length_days": 0.0453,
+      "hair_growth": 0.0447,
+      "weight_kg": 0.0421,
+      "skin_darkening": 0.0271,
+      "blood_group": 0.0201,
+      "weight_gain": 0.0194,
+      "period_freq_months": 0.0167,
+      "acne": 0.0149,
+      "hair_loss": 0.0115,
+      "exercise": 0.0084,
+      "mood_swings": 0.0079,
+      "fast_food": 0.0061
+    }
+  }
+}
