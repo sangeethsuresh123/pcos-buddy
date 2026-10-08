@@ -135,7 +135,7 @@ All settings via `.env`:
 | Variable | Default | Description |
 |---|---|---|
 | `OPENROUTER_API_KEY` | — | Your OpenRouter key |
-| `OPENROUTER_MODEL` | `google/gemma-3-27b-it` | Model to use |
+| `OPENROUTER_MODEL` | `google/gemma-4-26b-A4B` | Model to use |
 | `CHROMA_PERSIST_DIR` | `./backend/chroma_db` | Vector store location |
 | `KNOWLEDGE_DIR` | `./backend/knowledge/pcos_docs` | Knowledge base folder |
 | `HOST` | `0.0.0.0` | Server host |
