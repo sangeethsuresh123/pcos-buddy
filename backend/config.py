@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     openrouter_api_key: str = ""
     openrouter_model: str = "google/gemma-3-27b-it"
     chroma_persist_dir: str = str(Path(__file__).parent / "chroma_db")
+    weight_db_path: str = str(Path(__file__).parent / "data" / "weight.db")
     knowledge_dir: str = str(Path(__file__).parent / "knowledge" / "pcos_docs")
     host: str = "0.0.0.0"
     port: int = 8000

@@ -1,0 +1,613 @@
+{
+  "created_at": "2026-10-08T16:35:30.071120+00:00",
+  "protocol": {
+    "train_source": "dataset/train.csv",
+    "test_source": "dataset/test.csv",
+    "n_train": 459,
+    "n_test": 82,
+    "n_features": 23,
+    "preprocessing": "median imputation + StandardScaler fit on train",
+    "test_class_distribution": {
+      "non_pcos": 55,
+      "pcos": 27
+    },
+    "random_state": 42
+  },
+  "models": [
+    {
+      "model": "MLP Neural Network (64-32-16)",
+      "family": "deep-neural-network",
+      "params": {
+        "activation": "relu",
+        "alpha": 0.001,
+        "batch_size": "auto",
+        "beta_1": 0.9,
+        "beta_2": 0.999,
+        "early_stopping": true,
+        "epsilon": 1e-08,
+        "hidden_layer_sizes": [
+          64,
+          32,
+          16
+        ],
+        "learning_rate": "constant",
+        "learning_rate_init": 0.001,
+        "max_fun": 15000,
+        "max_iter": 500,
+        "momentum": 0.9,
+        "n_iter_no_change": 10,
+        "nesterovs_momentum": true,
+        "power_t": 0.5,
+        "random_state": 42,
+        "shuffle": true,
+        "solver": "adam",
+        "tol": 0.0001,
+        "validation_fraction": 0.1,
+        "verbose": false,
+        "warm_start": false
+      },
+      "metrics": {
+        "accuracy": 0.9024,
+        "precision_pcos": 0.913,
+        "recall_pcos": 0.7778,
+        "f1_pcos": 0.84,
+        "roc_auc": 0.9239,
+        "confusion_matrix": [
+          [
+            53,
+            2
+          ],
+          [
+            6,
+            21
+          ]
+        ]
+      },
+      "pickle_bytes_model_and_scaler": 109516,
+      "sklearn_single_sample_ms": 0.1124,
+      "sklearn_per_row_batch_ms": 0.0015,
+      "onnx": {
+        "exported": true,
+        "mode": "pipeline",
+        "bytes": 18573,
+        "parity_max_abs_diff": 1.6842428696151046e-07,
+        "label_agreement": 1.0,
+        "onnx_single_sample_ms": 0.018,
+        "error": null,
+        "note": null
+      },
+      "rank_roc_auc": 1
+    },
+    {
+      "model": "K-Nearest Neighbors",
+      "family": "instance-based",
+      "params": {
+        "algorithm": "auto",
+        "leaf_size": 30,
+        "metric": "minkowski",
+        "metric_params": null,
+        "n_jobs": null,
+        "n_neighbors": 7,
+        "p": 2,
+        "weights": "uniform"
+      },
+      "metrics": {
+        "accuracy": 0.8659,
+        "precision_pcos": 0.8636,
+        "recall_pcos": 0.7037,
+        "f1_pcos": 0.7755,
+        "roc_auc": 0.9232,
+        "confusion_matrix": [
+          [
+            52,
+            3
+          ],
+          [
+            8,
+            19
+          ]
+        ]
+      },
+      "pickle_bytes_model_and_scaler": 89619,
+      "sklearn_single_sample_ms": 1.0403,
+      "sklearn_per_row_batch_ms": 0.0167,
+      "onnx": {
+        "exported": true,
+        "mode": "pipeline",
+        "bytes": 45501,
+        "parity_max_abs_diff": 2.5544847792602354e-08,
+        "label_agreement": 1.0,
+        "onnx_single_sample_ms": 0.8163,
+        "error": null,
+        "note": null
+      },
+      "rank_roc_auc": 2
+    },
+    {
+      "model": "SVM (RBF kernel)",
+      "family": "kernel",
+      "params": {
+        "C": 1.0,
+        "break_ties": false,
+        "cache_size": 200,
+        "class_weight": null,
+        "coef0": 0.0,
+        "decision_function_shape": "ovr",
+        "degree": 3,
+        "gamma": "scale",
+        "kernel": "rbf",
+        "max_iter": -1,
+        "probability": true,
+        "random_state": 42,
+        "shrinking": true,
+        "tol": 0.001,
+        "verbose": false
+      },
+      "metrics": {
+        "accuracy": 0.878,
+        "precision_pcos": 0.9048,
+        "recall_pcos": 0.7037,
+        "f1_pcos": 0.7917,
+        "roc_auc": 0.9205,
+        "confusion_matrix": [
+          [
+            53,
+            2
+          ],
+          [
+            8,
+            19
+          ]
+        ]
+      },
+      "pickle_bytes_model_and_scaler": 39611,
+      "sklearn_single_sample_ms": 0.0927,
+      "sklearn_per_row_batch_ms": 0.0084,
+      "onnx": {
+        "exported": true,
+        "mode": "pipeline",
+        "bytes": 22894,
+        "parity_max_abs_diff": 1.9310832166663516e-07,
+        "label_agreement": 1.0,
+        "onnx_single_sample_ms": 0.0098,
+        "error": null,
+        "note": null
+      },
+      "rank_roc_auc": 3
+    },
+    {
+      "model": "Extra Trees",
+      "family": "ensemble-bagging",
+      "params": {
+        "bootstrap": false,
+        "ccp_alpha": 0.0,
+        "class_weight": null,
+        "criterion": "gini",
+        "max_depth": 5,
+        "max_features": "sqrt",
+        "max_leaf_nodes": null,
+        "max_samples": null,
+        "min_impurity_decrease": 0.0,
+        "min_samples_leaf": 1,
+        "min_samples_split": 2,
+        "min_weight_fraction_leaf": 0.0,
+        "monotonic_cst": null,
+        "n_estimators": 200,
+        "n_jobs": -1,
+        "oob_score": false,
+        "random_state": 42,
+        "verbose": 0,
+        "warm_start": false
+      },
+      "metrics": {
+        "accuracy": 0.878,
+        "precision_pcos": 0.9048,
+        "recall_pcos": 0.7037,
+        "f1_pcos": 0.7917,
+        "roc_auc": 0.9192,
+        "confusion_matrix": [
+          [
+            53,
+            2
+          ],
+          [
+            8,
+            19
+          ]
+        ]
+      },
+      "pickle_bytes_model_and_scaler": 730778,
+      "sklearn_single_sample_ms": 46.3528,
+      "sklearn_per_row_batch_ms": 0.474,
+      "onnx": {
+        "exported": true,
+        "mode": "pipeline",
+        "bytes": 310526,
+        "parity_max_abs_diff": 1.6914037925808145e-07,
+        "label_agreement": 1.0,
+        "onnx_single_sample_ms": 0.0086,
+        "error": null,
+        "note": null
+      },
+      "rank_roc_auc": 4
+    },
+    {
+      "model": "AdaBoost",
+      "family": "ensemble-boosting",
+      "params": {
+        "estimator": null,
+        "learning_rate": 0.1,
+        "n_estimators": 200,
+        "random_state": 42
+      },
+      "metrics": {
+        "accuracy": 0.878,
+        "precision_pcos": 0.84,
+        "recall_pcos": 0.7778,
+        "f1_pcos": 0.8077,
+        "roc_auc": 0.9192,
+        "confusion_matrix": [
+          [
+            51,
+            4
+          ],
+          [
+            6,
+            21
+          ]
+        ]
+      },
+      "pickle_bytes_model_and_scaler": 112838,
+      "sklearn_single_sample_ms": 16.2252,
+      "sklearn_per_row_batch_ms": 0.2047,
+      "onnx": {
+        "exported": true,
+        "mode": "pipeline",
+        "bytes": 170442,
+        "parity_max_abs_diff": 1.606747488946958e-07,
+        "label_agreement": 1.0,
+        "onnx_single_sample_ms": 0.7768,
+        "error": null,
+        "note": null
+      },
+      "rank_roc_auc": 5
+    },
+    {
+      "model": "XGBoost",
+      "family": "ensemble-boosting",
+      "params": {
+        "objective": "binary:logistic",
+        "base_score": null,
+        "booster": null,
+        "callbacks": null,
+        "colsample_bylevel": null,
+        "colsample_bynode": null,
+        "colsample_bytree": null,
+        "device": null,
+        "early_stopping_rounds": null,
+        "enable_categorical": true,
+        "eval_metric": "logloss",
+        "feature_types": null,
+        "feature_weights": null,
+        "gamma": null,
+        "grow_policy": null,
+        "importance_type": null,
+        "interaction_constraints": null,
+        "learning_rate": 0.1,
+        "max_bin": null,
+        "max_cat_threshold": null,
+        "max_cat_to_onehot": null,
+        "max_delta_step": null,
+        "max_depth": 5,
+        "max_leaves": null,
+        "min_child_weight": null,
+        "missing": NaN,
+        "monotone_constraints": null,
+        "multi_strategy": null,
+        "n_estimators": 200,
+        "n_jobs": -1,
+        "num_parallel_tree": null,
+        "random_state": 42,
+        "reg_alpha": null,
+        "reg_lambda": null,
+        "sampling_method": null,
+        "scale_pos_weight": null,
+        "subsample": null,
+        "tree_method": null,
+        "validate_parameters": null,
+        "verbosity": 0
+      },
+      "metrics": {
+        "accuracy": 0.9024,
+        "precision_pcos": 0.913,
+        "recall_pcos": 0.7778,
+        "f1_pcos": 0.84,
+        "roc_auc": 0.9158,
+        "confusion_matrix": [
+          [
+            53,
+            2
+          ],
+          [
+            6,
+            21
+          ]
+        ]
+      },
+      "pickle_bytes_model_and_scaler": 272054,
+      "sklearn_single_sample_ms": 0.3534,
+      "sklearn_per_row_batch_ms": 0.0375,
+      "onnx": {
+        "exported": true,
+        "mode": "model_only",
+        "bytes": 119313,
+        "parity_max_abs_diff": 2.086162567138672e-07,
+        "label_agreement": 1.0,
+        "onnx_single_sample_ms": 0.0081,
+        "error": null,
+        "note": null
+      },
+      "rank_roc_auc": 6
+    },
+    {
+      "model": "Logistic Regression",
+      "family": "linear",
+      "params": {
+        "C": 1.0,
+        "class_weight": null,
+        "dual": false,
+        "fit_intercept": true,
+        "intercept_scaling": 1,
+        "l1_ratio": 0.0,
+        "max_iter": 2000,
+        "n_jobs": null,
+        "penalty": "deprecated",
+        "random_state": 42,
+        "solver": "lbfgs",
+        "tol": 0.0001,
+        "verbose": 0,
+        "warm_start": false
+      },
+      "metrics": {
+        "accuracy": 0.8902,
+        "precision_pcos": 0.8462,
+        "recall_pcos": 0.8148,
+        "f1_pcos": 0.8302,
+        "roc_auc": 0.9131,
+        "confusion_matrix": [
+          [
+            51,
+            4
+          ],
+          [
+            5,
+            22
+          ]
+        ]
+      },
+      "pickle_bytes_model_and_scaler": 1704,
+      "sklearn_single_sample_ms": 0.132,
+      "sklearn_per_row_batch_ms": 0.0017,
+      "onnx": {
+        "exported": true,
+        "mode": "pipeline",
+        "bytes": 912,
+        "parity_max_abs_diff": 8.010536067803997e-08,
+        "label_agreement": 1.0,
+        "onnx_single_sample_ms": 0.007,
+        "error": null,
+        "note": null
+      },
+      "rank_roc_auc": 7
+    },
+    {
+      "model": "LightGBM",
+      "family": "ensemble-boosting",
+      "params": {
+        "boosting_type": "gbdt",
+        "class_weight": null,
+        "colsample_bytree": 1.0,
+        "importance_type": "split",
+        "learning_rate": 0.1,
+        "max_depth": 5,
+        "min_child_samples": 20,
+        "min_child_weight": 0.001,
+        "min_split_gain": 0.0,
+        "n_estimators": 200,
+        "n_jobs": null,
+        "num_leaves": 31,
+        "objective": null,
+        "random_state": 42,
+        "reg_alpha": 0.0,
+        "reg_lambda": 0.0,
+        "subsample": 1.0,
+        "subsample_for_bin": 200000,
+        "subsample_freq": 0,
+        "verbose": -1
+      },
+      "metrics": {
+        "accuracy": 0.8659,
+        "precision_pcos": 0.8333,
+        "recall_pcos": 0.7407,
+        "f1_pcos": 0.7843,
+        "roc_auc": 0.9111,
+        "confusion_matrix": [
+          [
+            51,
+            4
+          ],
+          [
+            7,
+            20
+          ]
+        ]
+      },
+      "pickle_bytes_model_and_scaler": 320677,
+      "sklearn_single_sample_ms": 0.5962,
+      "sklearn_per_row_batch_ms": 0.0106,
+      "onnx": {
+        "exported": true,
+        "mode": "model_only",
+        "bytes": 188832,
+        "parity_max_abs_diff": 9.560878250214344e-08,
+        "label_agreement": 1.0,
+        "onnx_single_sample_ms": 0.0089,
+        "error": null,
+        "note": null
+      },
+      "rank_roc_auc": 8
+    },
+    {
+      "model": "Gradient Boosting (incumbent)",
+      "family": "ensemble-boosting",
+      "params": {
+        "ccp_alpha": 0.0,
+        "criterion": "deprecated",
+        "init": null,
+        "learning_rate": 0.1,
+        "loss": "log_loss",
+        "max_depth": 5,
+        "max_features": null,
+        "max_leaf_nodes": null,
+        "min_impurity_decrease": 0.0,
+        "min_samples_leaf": 1,
+        "min_samples_split": 2,
+        "min_weight_fraction_leaf": 0.0,
+        "n_estimators": 200,
+        "n_iter_no_change": null,
+        "random_state": 42,
+        "subsample": 1.0,
+        "tol": 0.0001,
+        "validation_fraction": 0.1,
+        "verbose": 0,
+        "warm_start": false
+      },
+      "metrics": {
+        "accuracy": 0.9024,
+        "precision_pcos": 0.88,
+        "recall_pcos": 0.8148,
+        "f1_pcos": 0.8462,
+        "roc_auc": 0.9037,
+        "confusion_matrix": [
+          [
+            52,
+            3
+          ],
+          [
+            5,
+            22
+          ]
+        ]
+      },
+      "pickle_bytes_model_and_scaler": 827826,
+      "sklearn_single_sample_ms": 0.2188,
+      "sklearn_per_row_batch_ms": 0.0085,
+      "onnx": {
+        "exported": true,
+        "mode": "pipeline",
+        "bytes": 398479,
+        "parity_max_abs_diff": 0.0009770545500599193,
+        "label_agreement": 1.0,
+        "onnx_single_sample_ms": 0.0118,
+        "error": null,
+        "note": null
+      },
+      "rank_roc_auc": 9
+    },
+    {
+      "model": "Random Forest",
+      "family": "ensemble-bagging",
+      "params": {
+        "bootstrap": true,
+        "ccp_alpha": 0.0,
+        "class_weight": null,
+        "criterion": "gini",
+        "max_depth": 5,
+        "max_features": "sqrt",
+        "max_leaf_nodes": null,
+        "max_samples": null,
+        "min_impurity_decrease": 0.0,
+        "min_samples_leaf": 1,
+        "min_samples_split": 2,
+        "min_weight_fraction_leaf": 0.0,
+        "monotonic_cst": null,
+        "n_estimators": 200,
+        "n_jobs": -1,
+        "oob_score": false,
+        "random_state": 42,
+        "verbose": 0,
+        "warm_start": false
+      },
+      "metrics": {
+        "accuracy": 0.8902,
+        "precision_pcos": 0.9091,
+        "recall_pcos": 0.7407,
+        "f1_pcos": 0.8163,
+        "roc_auc": 0.8997,
+        "confusion_matrix": [
+          [
+            53,
+            2
+          ],
+          [
+            7,
+            20
+          ]
+        ]
+      },
+      "pickle_bytes_model_and_scaler": 784871,
+      "sklearn_single_sample_ms": 44.7777,
+      "sklearn_per_row_batch_ms": 0.4825,
+      "onnx": {
+        "exported": true,
+        "mode": "pipeline",
+        "bytes": 335497,
+        "parity_max_abs_diff": 0.010669335660045187,
+        "label_agreement": 1.0,
+        "onnx_single_sample_ms": 0.0091,
+        "error": null,
+        "note": "float32 tree-threshold rounding: max prob diff 1.07e-02, labels agree on 100%"
+      },
+      "rank_roc_auc": 10
+    },
+    {
+      "model": "Gaussian Naive Bayes",
+      "family": "probabilistic",
+      "params": {
+        "priors": null,
+        "var_smoothing": 1e-09
+      },
+      "metrics": {
+        "accuracy": 0.8171,
+        "precision_pcos": 0.6667,
+        "recall_pcos": 0.8889,
+        "f1_pcos": 0.7619,
+        "roc_auc": 0.8801,
+        "confusion_matrix": [
+          [
+            43,
+            12
+          ],
+          [
+            3,
+            24
+          ]
+        ]
+      },
+      "pickle_bytes_model_and_scaler": 2118,
+      "sklearn_single_sample_ms": 0.1045,
+      "sklearn_per_row_batch_ms": 0.0013,
+      "onnx": {
+        "exported": true,
+        "mode": "pipeline",
+        "bytes": 2243,
+        "parity_max_abs_diff": 3.3941243766655305e-06,
+        "label_agreement": 1.0,
+        "onnx_single_sample_ms": 0.0132,
+        "error": null,
+        "note": null
+      },
+      "rank_roc_auc": 11
+    }
+  ]
+}

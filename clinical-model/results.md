@@ -12,3 +12,5 @@
 | F1 (PCOS) | 0.8462 |
 | ROC AUC | 0.9037 |
 | Confusion matrix | `[[52, 3], [5, 22]]` |
+
+See `clinical-model/comparison_results.md` for a benchmark of 10 challenger ML/DL models on the same split.

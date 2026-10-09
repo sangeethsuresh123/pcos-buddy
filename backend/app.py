@@ -1,14 +1,15 @@
 import uvicorn
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pathlib import Path
 
 from backend.api.routes_chat import router as chat_router
 from backend.api.routes_ml import router as ml_router
 from backend.api.routes_rag import router as rag_router
+from backend.api.routes_weight import router as weight_router
 from backend.config import settings
 
 app = FastAPI(
@@ -28,6 +29,7 @@ app.add_middleware(
 app.include_router(chat_router)
 app.include_router(ml_router)
 app.include_router(rag_router)
+app.include_router(weight_router)
 
 
 class _Constraint:
@@ -112,7 +114,25 @@ async def health_check():
 
 
 templates_dir = Path(__file__).parent / "templates"
-if templates_dir.exists():
+frontend_dist = Path(__file__).parent / "frontend_dist"
+index_file = frontend_dist / "index.html"
+
+if index_file.exists():
+    dist_root = frontend_dist.resolve()
+
+    @app.get("/{full_path:path}", include_in_schema=False)
+    async def spa_fallback(full_path: str):
+        if full_path.startswith("api/"):
+            raise HTTPException(status_code=404, detail="Not found")
+        if full_path:
+            candidate = (frontend_dist / full_path).resolve()
+            if candidate.is_relative_to(dist_root) and candidate.is_file():
+                return FileResponse(candidate)
+        return FileResponse(index_file)
+
+    if templates_dir.exists():
+        app.mount("/legacy", StaticFiles(directory=str(templates_dir), html=True), name="legacy")
+elif templates_dir.exists():
     app.mount("/", StaticFiles(directory=str(templates_dir), html=True), name="static")
 
 
