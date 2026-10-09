@@ -1,3 +1,4 @@
+import pytest
 from langchain_core.documents import Document
 
 from backend.api import routes_chat, routes_ml, routes_rag
@@ -7,6 +8,15 @@ from backend.config import settings
 from fastapi.testclient import TestClient
 
 client = TestClient(app)
+
+
+@pytest.fixture(autouse=True)
+def _authenticate(isolated_app_dbs):
+    response = client.post(
+        "/api/auth/register",
+        json={"email": "api-tester@example.com", "password": "testpassword123"},
+    )
+    assert response.status_code == 201
 
 
 def test_health_check():

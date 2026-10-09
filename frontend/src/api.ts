@@ -56,12 +56,25 @@ export type ChatMessage = {
 
 export type RiskAssessment = PredictionResult & { assessed_at: string }
 
+export type User = {
+  id: number
+  email: string
+  created_at: string
+}
+
+export type AuthConfig = {
+  google_enabled: boolean
+  google_login_url: string | null
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(path, {
+    credentials: 'same-origin',
     headers: { 'Content-Type': 'application/json' },
     ...init,
   })
   if (!res.ok) {
+    if (res.status === 401) window.dispatchEvent(new Event('auth:unauthorized'))
     let detail = res.statusText
     try {
       const body = await res.json()
@@ -76,6 +89,24 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export const api = {
+  register: (email: string, password: string) =>
+    request<User>('/api/auth/register', {
+      method: 'POST',
+      body: JSON.stringify({ email, password }),
+    }),
+
+  login: (email: string, password: string) =>
+    request<User>('/api/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ email, password }),
+    }),
+
+  logout: () => request<{ message: string }>('/api/auth/logout', { method: 'POST' }),
+
+  me: () => request<User>('/api/auth/me'),
+
+  authConfig: () => request<AuthConfig>('/api/auth/config'),
+
   getProfile: () => request<{ height_cm: number | null }>('/api/weight/profile'),
 
   setProfile: (height_cm: number) =>

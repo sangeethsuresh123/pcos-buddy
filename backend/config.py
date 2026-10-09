@@ -13,6 +13,14 @@ class Settings(BaseSettings):
     knowledge_dir: str = str(Path(__file__).parent / "knowledge" / "pcos_docs")
     host: str = "0.0.0.0"
     port: int = 8000
+    auth_db_path: str = str(Path(__file__).parent / "data" / "auth.db")
+    auth_cookie_name: str = "pcos_session"
+    session_ttl_days: int = 30
+    auth_pbkdf2_iterations: int = 600_000
+    cookie_secure: bool = False
+    google_client_id: str = ""
+    google_client_secret: str = ""
+    google_redirect_uri: str = ""
     embedding_model: str = "all-MiniLM-L6-v2"
     chunk_size: int = 1000
     chunk_overlap: int = 200

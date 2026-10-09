@@ -10,19 +10,55 @@ from backend.config import settings
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS weight_entries (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    entry_date TEXT NOT NULL UNIQUE,
+    user_id INTEGER NOT NULL,
+    entry_date TEXT NOT NULL,
     weight_kg REAL NOT NULL,
     waist_cm REAL,
     hip_cm REAL,
     notes TEXT,
-    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    UNIQUE(user_id, entry_date)
 );
 CREATE TABLE IF NOT EXISTS weight_profile (
-    id INTEGER PRIMARY KEY CHECK (id = 1),
+    user_id INTEGER PRIMARY KEY,
     height_cm REAL NOT NULL,
     updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 """
+
+
+def _table_columns(conn: sqlite3.Connection, table: str) -> set[str]:
+    try:
+        return {row["name"] for row in conn.execute(f"PRAGMA table_info({table})")}
+    except sqlite3.Error:
+        return set()
+
+
+def _migrate(conn: sqlite3.Connection) -> None:
+    """Upgrade pre-auth databases to per-user ownership.
+
+    Rows created before auth existed are re-owned by user_id 0 (a sentinel that
+    matches no real account, so they stay invisible).
+    """
+    entry_cols = _table_columns(conn, "weight_entries")
+    legacy_entries = bool(entry_cols) and "user_id" not in entry_cols
+    if legacy_entries:
+        conn.executescript("ALTER TABLE weight_entries RENAME TO weight_entries_legacy;")
+
+    profile_cols = _table_columns(conn, "weight_profile")
+    if profile_cols and "user_id" not in profile_cols:
+        conn.execute("DROP TABLE weight_profile")
+
+    conn.executescript(SCHEMA)
+
+    if legacy_entries:
+        conn.execute(
+            "INSERT INTO weight_entries "
+            "(id, user_id, entry_date, weight_kg, waist_cm, hip_cm, notes, created_at) "
+            "SELECT id, 0, entry_date, weight_kg, waist_cm, hip_cm, notes, created_at "
+            "FROM weight_entries_legacy"
+        )
+        conn.execute("DROP TABLE weight_entries_legacy")
 
 
 def _connect() -> sqlite3.Connection:
@@ -30,34 +66,39 @@ def _connect() -> sqlite3.Connection:
     db_path.parent.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(str(db_path))
     conn.row_factory = sqlite3.Row
-    conn.executescript(SCHEMA)
+    _migrate(conn)
     return conn
 
 
-def get_profile_height() -> float | None:
+def get_profile_height(user_id: int) -> float | None:
     with _connect() as conn:
-        row = conn.execute("SELECT height_cm FROM weight_profile WHERE id = 1").fetchone()
+        row = conn.execute(
+            "SELECT height_cm FROM weight_profile WHERE user_id = ?", (user_id,)
+        ).fetchone()
     return float(row["height_cm"]) if row else None
 
 
-def set_profile_height(height_cm: float) -> float:
+def set_profile_height(user_id: int, height_cm: float) -> float:
     with _connect() as conn:
         conn.execute(
-            "INSERT INTO weight_profile (id, height_cm, updated_at) VALUES (1, ?, ?) "
-            "ON CONFLICT(id) DO UPDATE SET height_cm = excluded.height_cm, "
+            "INSERT INTO weight_profile (user_id, height_cm, updated_at) VALUES (?, ?, ?) "
+            "ON CONFLICT(user_id) DO UPDATE SET height_cm = excluded.height_cm, "
             "updated_at = excluded.updated_at",
-            (height_cm, datetime.now().isoformat(timespec="seconds")),
+            (user_id, height_cm, datetime.now().isoformat(timespec="seconds")),
         )
     return height_cm
 
 
-def list_entries(days: int | None = None) -> list[dict]:
-    query = "SELECT id, entry_date, weight_kg, waist_cm, hip_cm, notes FROM weight_entries"
-    params: tuple = ()
+def list_entries(user_id: int, days: int | None = None) -> list[dict]:
+    query = (
+        "SELECT id, entry_date, weight_kg, waist_cm, hip_cm, notes "
+        "FROM weight_entries WHERE user_id = ?"
+    )
+    params: tuple = (user_id,)
     if days:
         cutoff = (date.today() - timedelta(days=days)).isoformat()
-        query += " WHERE entry_date >= ?"
-        params = (cutoff,)
+        query += " AND entry_date >= ?"
+        params = (user_id, cutoff)
     query += " ORDER BY entry_date ASC"
     with _connect() as conn:
         rows = conn.execute(query, params).fetchall()
@@ -74,14 +115,15 @@ def list_entries(days: int | None = None) -> list[dict]:
     ]
 
 
-def upsert_entry(entry: dict) -> dict:
+def upsert_entry(user_id: int, entry: dict) -> dict:
     with _connect() as conn:
         conn.execute(
-            "INSERT INTO weight_entries (entry_date, weight_kg, waist_cm, hip_cm, notes) "
-            "VALUES (?, ?, ?, ?, ?) "
-            "ON CONFLICT(entry_date) DO UPDATE SET weight_kg = excluded.weight_kg, "
+            "INSERT INTO weight_entries (user_id, entry_date, weight_kg, waist_cm, hip_cm, notes) "
+            "VALUES (?, ?, ?, ?, ?, ?) "
+            "ON CONFLICT(user_id, entry_date) DO UPDATE SET weight_kg = excluded.weight_kg, "
             "waist_cm = excluded.waist_cm, hip_cm = excluded.hip_cm, notes = excluded.notes",
             (
+                user_id,
                 entry["entry_date"],
                 entry["weight_kg"],
                 entry.get("waist_cm"),
@@ -91,15 +133,17 @@ def upsert_entry(entry: dict) -> dict:
         )
         row = conn.execute(
             "SELECT id, entry_date, weight_kg, waist_cm, hip_cm, notes "
-            "FROM weight_entries WHERE entry_date = ?",
-            (entry["entry_date"],),
+            "FROM weight_entries WHERE user_id = ? AND entry_date = ?",
+            (user_id, entry["entry_date"]),
         ).fetchone()
     return _entry_dict(row)
 
 
-def delete_entry(entry_id: int) -> bool:
+def delete_entry(user_id: int, entry_id: int) -> bool:
     with _connect() as conn:
-        cur = conn.execute("DELETE FROM weight_entries WHERE id = ?", (entry_id,))
+        cur = conn.execute(
+            "DELETE FROM weight_entries WHERE id = ? AND user_id = ?", (entry_id, user_id)
+        )
     return cur.rowcount > 0
 
 

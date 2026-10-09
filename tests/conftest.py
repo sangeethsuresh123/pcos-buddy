@@ -2,7 +2,11 @@ import numpy as np
 import pandas as pd
 import pytest
 
+from backend.config import settings
 from backend.ml.preprocess import FEATURE_COLUMNS, TARGET_COLUMN
+
+TEST_EMAIL = "tester@example.com"
+TEST_PASSWORD = "testpassword123"
 
 BINARY_COLUMNS = [
     "Weight gain(Y/N)",
@@ -74,3 +78,38 @@ def predictor_module(monkeypatch, tmp_path, synthetic_dataset):
     monkeypatch.setattr(predictor_module, "TRAIN_DATA_PATH", train_path)
     monkeypatch.setattr(predictor_module, "TEST_DATA_PATH", test_path)
     return predictor_module
+
+
+@pytest.fixture(autouse=True)
+def isolated_app_dbs(tmp_path, monkeypatch):
+    """Point auth + weight SQLite files at a throwaway path and use fast hashing."""
+    monkeypatch.setattr(settings, "auth_db_path", str(tmp_path / "auth.db"))
+    monkeypatch.setattr(settings, "weight_db_path", str(tmp_path / "weight.db"))
+    monkeypatch.setattr(settings, "auth_pbkdf2_iterations", 1000)
+
+
+@pytest.fixture()
+def client(isolated_app_dbs):
+    """TestClient that is already registered and logged in."""
+    from fastapi.testclient import TestClient
+
+    from backend.app import app
+
+    with TestClient(app) as test_client:
+        response = test_client.post(
+            "/api/auth/register",
+            json={"email": TEST_EMAIL, "password": TEST_PASSWORD},
+        )
+        assert response.status_code == 201
+        yield test_client
+
+
+@pytest.fixture()
+def anon_client(isolated_app_dbs):
+    """Unauthenticated TestClient."""
+    from fastapi.testclient import TestClient
+
+    from backend.app import app
+
+    with TestClient(app) as test_client:
+        yield test_client

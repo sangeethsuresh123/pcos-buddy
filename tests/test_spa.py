@@ -46,6 +46,10 @@ def test_unknown_api_path_stays_json_404(client):
 
 
 def test_known_api_routes_still_work(client):
+    client.post(
+        "/api/auth/register",
+        json={"email": "spa@example.com", "password": "testpassword123"},
+    )
     res = client.get("/api/weight/analytics")
     assert res.status_code == 200
     assert res.json()["entry_count"] >= 0

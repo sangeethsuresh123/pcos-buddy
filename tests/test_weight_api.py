@@ -1,23 +1,6 @@
 from datetime import date, timedelta
 
-import pytest
-
-from backend.config import settings
 from backend.weight import store
-
-from fastapi.testclient import TestClient
-
-
-@pytest.fixture(autouse=True)
-def temp_db(tmp_path, monkeypatch):
-    monkeypatch.setattr(settings, "weight_db_path", str(tmp_path / "weight.db"))
-
-
-@pytest.fixture()
-def client():
-    from backend.app import app
-
-    return TestClient(app)
 
 
 def _entry(day: str, weight: float, waist: float | None = None, hip: float | None = None):

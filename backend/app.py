@@ -1,15 +1,17 @@
 import uvicorn
-from fastapi import FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pathlib import Path
 
+from backend.api.routes_auth import router as auth_router
 from backend.api.routes_chat import router as chat_router
 from backend.api.routes_ml import router as ml_router
 from backend.api.routes_rag import router as rag_router
 from backend.api.routes_weight import router as weight_router
+from backend.auth.deps import get_current_user
 from backend.config import settings
 
 app = FastAPI(
@@ -26,9 +28,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(chat_router)
-app.include_router(ml_router)
-app.include_router(rag_router)
+app.include_router(auth_router)
+app.include_router(chat_router, dependencies=[Depends(get_current_user)])
+app.include_router(ml_router, dependencies=[Depends(get_current_user)])
+app.include_router(rag_router, dependencies=[Depends(get_current_user)])
 app.include_router(weight_router)
 
 

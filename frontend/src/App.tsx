@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, type ReactNode } from 'react'
 import {
   NavLink,
   Navigate,
@@ -8,10 +8,12 @@ import {
   useLocation,
 } from 'react-router-dom'
 import { ChatIcon, HomeIcon, PulseIcon, TrendIcon } from './components/icons'
+import { AuthProvider, useAuth } from './auth'
 import Home from './pages/Home'
 import Risk from './pages/Risk'
 import Weight from './pages/Weight'
 import Chat from './pages/Chat'
+import Login from './pages/Login'
 
 const NAV = [
   { to: '/', label: 'Home', icon: HomeIcon, end: true },
@@ -39,8 +41,26 @@ function ScrollToTop() {
   return null
 }
 
+function RequireAuth({ children }: { children: ReactNode }) {
+  const { user, loading } = useAuth()
+  const location = useLocation()
+
+  if (loading) {
+    return (
+      <div className="app-loading">
+        <span className="spinner" />
+      </div>
+    )
+  }
+  if (!user) {
+    return <Navigate to="/login" replace state={{ from: location.pathname }} />
+  }
+  return <>{children}</>
+}
+
 function Layout() {
   const { pathname } = useLocation()
+  const { user, logout } = useAuth()
   const title = TITLES[pathname] ?? 'PCOS Care'
 
   return (
@@ -64,6 +84,16 @@ function Layout() {
             </NavLink>
           ))}
         </nav>
+        {user && (
+          <div className="sidebar-account">
+            <span className="account-email" title={user.email}>
+              {user.email}
+            </span>
+            <button className="btn btn-ghost logout-btn" onClick={() => void logout()}>
+              Log out
+            </button>
+          </div>
+        )}
         <p className="sidebar-foot">
           Educational support only — always confirm diagnosis with a clinician.
         </p>
@@ -75,6 +105,11 @@ function Layout() {
             <BrandMark />
           </div>
           <h1 className="topbar-title">{title}</h1>
+          {user && (
+            <button className="btn btn-ghost topbar-logout" onClick={() => void logout()}>
+              Log out
+            </button>
+          )}
         </header>
 
         <main className="content">
@@ -101,14 +136,23 @@ function Layout() {
 
 export default function App() {
   return (
-    <Routes>
-      <Route element={<Layout />}>
-        <Route path="/" element={<Home />} />
-        <Route path="/risk" element={<Risk />} />
-        <Route path="/weight" element={<Weight />} />
-        <Route path="/chat" element={<Chat />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Route>
-    </Routes>
+    <AuthProvider>
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route
+          element={
+            <RequireAuth>
+              <Layout />
+            </RequireAuth>
+          }
+        >
+          <Route path="/" element={<Home />} />
+          <Route path="/risk" element={<Risk />} />
+          <Route path="/weight" element={<Weight />} />
+          <Route path="/chat" element={<Chat />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Route>
+      </Routes>
+    </AuthProvider>
   )
 }
