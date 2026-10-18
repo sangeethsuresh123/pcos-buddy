@@ -7,24 +7,26 @@ import {
   Routes,
   useLocation,
 } from 'react-router-dom'
-import { ChatIcon, HomeIcon, PulseIcon, TrendIcon } from './components/icons'
+import { HomeIcon, PulseIcon, TrendIcon, CalendarIcon } from './components/icons'
 import { AuthProvider, useAuth } from './auth'
 import Home from './pages/Home'
 import Risk from './pages/Risk'
 import Weight from './pages/Weight'
 import Chat from './pages/Chat'
+import Symptoms from './pages/Symptoms'
 import Login from './pages/Login'
 
 const NAV = [
   { to: '/', label: 'Home', icon: HomeIcon, end: true },
   { to: '/risk', label: 'Risk check', icon: PulseIcon, end: false },
+  { to: '/symptoms', label: 'Symptoms', icon: CalendarIcon, end: false },
   { to: '/weight', label: 'Weight', icon: TrendIcon, end: false },
-  { to: '/chat', label: 'Assistant', icon: ChatIcon, end: false },
 ]
 
 const TITLES: Record<string, string> = {
   '/': 'Home',
   '/risk': 'Risk assessment',
+  '/symptoms': 'Symptom tracker',
   '/weight': 'Weight tracker',
   '/chat': 'Health assistant',
 }
@@ -148,6 +150,7 @@ export default function App() {
         >
           <Route path="/" element={<Home />} />
           <Route path="/risk" element={<Risk />} />
+          <Route path="/symptoms" element={<Symptoms />} />
           <Route path="/weight" element={<Weight />} />
           <Route path="/chat" element={<Chat />} />
           <Route path="*" element={<Navigate to="/" replace />} />

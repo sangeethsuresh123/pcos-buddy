@@ -7,6 +7,32 @@ export type Entry = {
   notes?: string | null
 }
 
+export type SymptomEntry = {
+  id?: number
+  date: string
+  period_flow?: number | null
+  period_day?: number | null
+  cycle_length?: number | null
+  abdominal_pain?: number | null
+  breast_tenderness?: number | null
+  bloating?: number | null
+  headache?: number | null
+  fatigue?: number | null
+  acne?: number | null
+  hair_loss?: number | null
+  hirsutism?: number | null
+  skin_darkening?: number | null
+  mood_swings?: number | null
+  anxiety?: number | null
+  depression?: number | null
+  irritability?: number | null
+  exercise_minutes?: number | null
+  sleep_hours?: number | null
+  stress_level?: number | null
+  diet_quality?: number | null
+  notes?: string | null
+}
+
 export type Milestone = {
   target_weight_kg: number
   loss_required_kg: number
@@ -37,6 +63,27 @@ export type Analytics = {
   milestones: Record<string, Milestone> | null
   flags: Flag[]
   series: { date: string; weight_kg: number; bmi: number | null }[]
+}
+
+export type CycleAnalysis = {
+  cycles: { start: string; length: number }[]
+  avg_cycle_length: number | null
+  avg_period_length: number | null
+  next_period_estimate: string | null
+  phase: string
+  days_since_last_period: number | null
+  symptom_patterns: Record<string, Array<{ symptom: string; frequency: number }>>
+}
+
+export type SymptomProfile = {
+  typical_cycle_length: number | null
+  typical_period_length: number | null
+  last_period_start: string | null
+}
+
+export type MlFeaturesFromSymptoms = {
+  features: Record<string, number>
+  entry_date: string | null
 }
 
 export type PredictionResult = {
@@ -127,6 +174,39 @@ export const api = {
     request<{ deleted: boolean }>(`/api/weight/entries/${id}`, { method: 'DELETE' }),
 
   getAnalytics: () => request<Analytics>('/api/weight/analytics'),
+
+  getSymptomsProfile: () => request<SymptomProfile>('/api/symptoms/profile'),
+
+  setSymptomsProfile: (data: Partial<SymptomProfile>) =>
+    request<SymptomProfile>('/api/symptoms/profile', {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+
+  getEntriesSymptoms: () => request<SymptomEntry[]>('/api/symptoms/entries'),
+
+  getSymptomEntry: (date: string) => request<SymptomEntry>(`/api/symptoms/entries/${date}`),
+
+  addSymptomEntry: (entry: SymptomEntry) =>
+    request<SymptomEntry>('/api/symptoms/entries', {
+      method: 'POST',
+      body: JSON.stringify(entry),
+    }),
+
+  deleteSymptomEntry: (id: number) =>
+    request<{ deleted: boolean }>(`/api/symptoms/entries/${id}`, { method: 'DELETE' }),
+
+  getSymptomsAnalysis: () => request<CycleAnalysis>('/api/symptoms/analysis'),
+
+  getCycleEvents: () => request<any[]>('/api/symptoms/cycle-events'),
+
+  addCycleEvent: (event: any) =>
+    request<any>('/api/symptoms/cycle-events', {
+      method: 'POST',
+      body: JSON.stringify(event),
+    }),
+
+  getMlFeaturesFromSymptoms: () => request<MlFeaturesFromSymptoms>('/api/symptoms/ml-features'),
 
   predict: (features: Record<string, number>) =>
     request<PredictionResult>('/api/ml/predict', {

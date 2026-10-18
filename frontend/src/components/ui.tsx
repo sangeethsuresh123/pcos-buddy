@@ -184,3 +184,70 @@ export function ToggleField({
     </div>
   )
 }
+
+export function SelectField({
+  label,
+  value,
+  onChange,
+  options,
+  hint,
+}: {
+  label: string
+  value: number | string
+  onChange: (v: number | string) => void
+  options: { value: number | string; label: string }[]
+  hint?: string
+}) {
+  return (
+    <label className="field">
+      <span className="field-label">
+        {label}
+      </span>
+      <select
+        className="input"
+        value={value === '' ? '' : value}
+        onChange={(e) => onChange(e.target.value === '' ? '' : (isNaN(Number(e.target.value)) ? e.target.value : Number(e.target.value)))}
+      >
+        <option value="">Select…</option>
+        {options.map(o => (
+          <option key={o.value} value={o.value}>{o.label}</option>
+        ))}
+      </select>
+      {hint && <span className="field-hint">{hint}</span>}
+    </label>
+  )
+}
+
+export function Modal({
+  open,
+  onClose,
+  title,
+  children,
+  size = 'md',
+}: {
+  open: boolean
+  onClose: () => void
+  title: string
+  children: ReactNode
+  size?: 'sm' | 'md' | 'lg' | 'xl'
+}) {
+  if (!open) return null
+
+  const sizeClasses = { sm: 'max-w-[360px]', md: 'max-w-[500px]', lg: 'max-w-[640px]', xl: 'max-w-[800px]' }
+
+  return (
+    <div className="modal-overlay" onClick={onClose} role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <div className={`modal ${sizeClasses[size]}`} onClick={e => e.stopPropagation()}>
+        <div className="modal-header">
+          <h2 id="modal-title" className="modal-title">{title}</h2>
+          <button className="modal-close" onClick={onClose} aria-label="Close">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+          </button>
+        </div>
+        <div className="modal-body">
+          {children}
+        </div>
+      </div>
+    </div>
+  )
+}

@@ -11,6 +11,7 @@ from backend.api.routes_chat import router as chat_router
 from backend.api.routes_ml import router as ml_router
 from backend.api.routes_rag import router as rag_router
 from backend.api.routes_weight import router as weight_router
+from backend.api.routes_symptoms import router as symptoms_router
 from backend.auth.deps import get_current_user
 from backend.config import settings
 
@@ -33,6 +34,7 @@ app.include_router(chat_router, dependencies=[Depends(get_current_user)])
 app.include_router(ml_router, dependencies=[Depends(get_current_user)])
 app.include_router(rag_router, dependencies=[Depends(get_current_user)])
 app.include_router(weight_router)
+app.include_router(symptoms_router, dependencies=[Depends(get_current_user)])
 
 
 class _Constraint:

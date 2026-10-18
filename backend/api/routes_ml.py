@@ -1,6 +1,7 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, ConfigDict, Field
 
+from backend.auth.deps import get_current_user
 from backend.ml.predictor import get_predictor
 
 router = APIRouter(prefix="/api/ml", tags=["ml"])
@@ -33,8 +34,10 @@ _PREDICTION_RANGES = {
 }
 
 
-def _feature_field(*, alias: str, ge: float, le: float):
-    return Field(..., alias=alias, ge=ge, le=le)
+def _feature_field(*, alias: str, ge: float, le: float, required: bool = True):
+    if required:
+        return Field(..., alias=alias, ge=ge, le=le)
+    return Field(0, alias=alias, ge=ge, le=le)
 
 
 class PredictionRequest(BaseModel):
@@ -44,7 +47,7 @@ class PredictionRequest(BaseModel):
     blood_group: float = _feature_field(alias="Blood Group", ge=1, le=20)
     pulse_rate: float = _feature_field(alias="Pulse rate(bpm)", ge=40, le=150)
     hb: float = _feature_field(alias="Hb(g/dl)", ge=5, le=20)
-    cycle_ri: float = _feature_field(alias="Cycle(R/I)", ge=0, le=5)
+    cycle_ri: float = _feature_field(alias="Cycle(R/I)", ge=0, le=5, required=False)
     cycle_length: float = _feature_field(alias="Cycle length(days)", ge=1, le=120)
     marriage_status: float = _feature_field(alias="Marraige Status (Yrs)", ge=0, le=40)
     i_beta_hcg: float = _feature_field(alias="I   beta-HCG(mIU/mL)", ge=0, le=1000)
@@ -56,11 +59,11 @@ class PredictionRequest(BaseModel):
     vit_d3: float = _feature_field(alias="Vit D3 (ng/mL)", ge=0, le=100)
     prg: float = _feature_field(alias="PRG(ng/mL)", ge=0, le=60)
     rbs: float = _feature_field(alias="RBS(mg/dl)", ge=30, le=400)
-    weight_gain: float = _feature_field(alias="Weight gain(Y/N)", ge=0, le=1)
-    hair_growth: float = _feature_field(alias="hair growth(Y/N)", ge=0, le=1)
-    skin_darkening: float = _feature_field(alias="Skin darkening (Y/N)", ge=0, le=1)
-    hair_loss: float = _feature_field(alias="Hair loss(Y/N)", ge=0, le=1)
-    reg_exercise: float = _feature_field(alias="Reg.Exercise(Y/N)", ge=0, le=1)
+    weight_gain: float = _feature_field(alias="Weight gain(Y/N)", ge=0, le=1, required=False)
+    hair_growth: float = _feature_field(alias="hair growth(Y/N)", ge=0, le=1, required=False)
+    skin_darkening: float = _feature_field(alias="Skin darkening (Y/N)", ge=0, le=1, required=False)
+    hair_loss: float = _feature_field(alias="Hair loss(Y/N)", ge=0, le=1, required=False)
+    reg_exercise: float = _feature_field(alias="Reg.Exercise(Y/N)", ge=0, le=1, required=False)
     follicle_no_l: float = _feature_field(alias="Follicle No. (L)", ge=0, le=50)
     follicle_no_r: float = _feature_field(alias="Follicle No. (R)", ge=0, le=50)
 
@@ -85,7 +88,11 @@ class TrainResponse(BaseModel):
 
 
 @router.post("/predict", response_model=PredictionResponse)
-async def predict_pcos(request: PredictionRequest):
+async def predict_pcos(
+    request: PredictionRequest,
+    user: dict = Depends(get_current_user),
+    use_symptoms: bool = True,
+):
     predictor = get_predictor()
     if not predictor.is_loaded:
         raise HTTPException(
@@ -94,6 +101,8 @@ async def predict_pcos(request: PredictionRequest):
         )
 
     features = request.model_dump(by_alias=True)
+    if use_symptoms:
+        features = predictor.enrich_from_symptoms(user["id"], features)
     result = predictor.predict(features)
     return PredictionResponse(**result)
 

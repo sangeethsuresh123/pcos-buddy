@@ -40,6 +40,9 @@ def test_predict_returns_prediction(monkeypatch, sample_features):
                 "recommendations": ["Consult a gynecologist"],
             }
 
+        def enrich_from_symptoms(self, user_id, features):
+            return features
+
     monkeypatch.setattr(routes_ml, "get_predictor", lambda: FakePredictor())
 
     resp = client.post("/api/ml/predict", json=sample_features)

@@ -1,11 +1,13 @@
 import pickle
 from pathlib import Path
+from typing import Optional
 
 import numpy as np
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.metrics import accuracy_score, classification_report, roc_auc_score
 
 from backend.ml.preprocess import FEATURE_COLUMNS, TARGET_COLUMN, load_dataframe
+from backend.symptoms import store as symptom_store
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 MODEL_DIR = Path(__file__).parent / "models"
@@ -173,6 +175,15 @@ class PCOSPredictor:
             recs.append("Continue maintaining a healthy lifestyle. Regular check-ups are recommended.")
 
         return recs
+
+    def enrich_from_symptoms(self, user_id: int, features: dict) -> dict:
+        """Enrich features with latest symptom data for binary features."""
+        enriched = features.copy()
+        symptom_features = symptom_store.get_latest_symptoms_for_ml(user_id)
+        for key, value in symptom_features.items():
+            if key not in enriched or enriched[key] == 0:
+                enriched[key] = value
+        return enriched
 
     @staticmethod
     def _fit_scaler(X_train: np.ndarray):
